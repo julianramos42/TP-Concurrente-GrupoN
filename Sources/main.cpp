@@ -1,7 +1,7 @@
 #include <iostream>
 #include <thread>
-#include <cstdlib>
-#include <ctime>
+#include <stdlib.h>
+#include <time.h>
 
 #include "productor.h"
 
