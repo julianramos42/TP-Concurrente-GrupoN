@@ -1,5 +1,6 @@
 #include "vram.h"
 #include "semaforo.h"
+#include "logger.h"
 #include <mutex>
 #include <chrono>
 #include <thread>
@@ -18,14 +19,17 @@ mutex mtx_liberacion; // 250MS
 mutex mtx_slots;
 bool slots_vram[5];
 
-void init_vram() { // INICIA EL SEMAFORO CON 5 ESPACIOS Y LOS 5 SLOTS DEL BUFFER EN FALSE
+void init_vram()
+{ // INICIA EL SEMAFORO CON 5 ESPACIOS Y LOS 5 SLOTS DEL BUFFER EN FALSE
     init(slots_disponibles, 5);
-    for(int i = 0; i < 5; i++) {
+    for (int i = 0; i < 5; i++)
+    {
         slots_vram[i] = false;
     }
 }
 
-int ingresar_a_vram(Job& job) {
+int ingresar_a_vram(Job &job)
+{
     wait(slots_disponibles); // ESPERA UN SLOT DISPONIBLE SINO SE BLOQUEA
 
     // SE BUSCA EN QUE SLOT ASIGNARLO
@@ -34,8 +38,10 @@ int ingresar_a_vram(Job& job) {
     int i = 0;
 
     // SI ES MENOR QUE 5 O SI NO HAY LUGAR
-    while (i < 5 && mi_slot == -1) {
-        if (!slots_vram[i]) { // SI ES FALSE (ESTA VACIO)
+    while (i < 5 && mi_slot == -1)
+    {
+        if (!slots_vram[i])
+        { // SI ES FALSE (ESTA VACIO)
             slots_vram[i] = true;
             mi_slot = i;
         }
@@ -46,7 +52,7 @@ int ingresar_a_vram(Job& job) {
     // ASIGNACION
     mtx_asignacion.lock();
 
-    // ACA IRIA EL LOG DE ASIGNADO_VRAM
+    loggear_evento(job, "ASIGNADO_VRAM");
 
     sleep_for(milliseconds(450)); // SE GENERA LA ESPERA (ENUNCIADO)
     mtx_asignacion.unlock();
@@ -54,14 +60,15 @@ int ingresar_a_vram(Job& job) {
     return mi_slot;
 }
 
-void procesar_y_liberar_vram(Job& job, int slot_asignado) {
+void procesar_y_liberar_vram(Job &job, int slot_asignado)
+{
     // TIEMPO DE CARGA DE ASSETS (600MS)
     sleep_for(milliseconds(600));
 
     // LIBERACION
     mtx_liberacion.lock();
 
-    // ACA IRIA EL LOG DE FINALIZADO
+    loggear_evento(job, "FINALIZADO_VRAM");
 
     sleep_for(milliseconds(250)); // SE GENERA LA ESPERA (ENUNCIADO)
     mtx_liberacion.unlock();

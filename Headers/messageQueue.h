@@ -9,13 +9,13 @@
 extern std::vector<Job> messageQueue;
 extern std::mutex mtxQueue;
 
+void init_queue();
+
 void enqueueJob(Job job);
 
 Job dequeueJob();
 
-void mostrarQueue();
-
-int buscarPrioridad(char prioridad[]);
+int buscarPrioridad(Priority prioridad);
 
 Job liberarJob(int posicion);
 

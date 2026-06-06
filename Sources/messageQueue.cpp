@@ -1,107 +1,98 @@
 #include <iostream>
-#include <queue>
-#include <string.h>
+#include <vector>
 #include <mutex>
-#include <thread>
+#include <ctime>
 #include "messageQueue.h"
 #include "job.h"
+#include "logger.h"
+#include "semaforo.h"
 
 std::vector<Job> messageQueue;
 std::mutex mtxQueue;
+
+Semaforo items_cola;
 int MAX_PREMIUMS_SEGUIDOS = 8;
 int PREMIUMS_LIBERADOS = 0;
 
-
-
-void enqueueJob(Job job)
-{
-    mtxQueue.lock();
-
-    messageQueue.push_back(job);
-
-    //LOG - ENCOLADO CON EXITO.
-
-
-    mtxQueue.unlock();
-
+void init_queue() {
+    init(items_cola, 0);
 }
 
-Job dequeueJob()
-{
-    Job j;
+void enqueueJob(Job job) {
+    job.enqueueTime = time(0);
+
     mtxQueue.lock();
+    messageQueue.push_back(job);
 
-    if(messageQueue.empty())
-    {
-        //LOG - QUEUE VACIA
+    if (job.id != -1) {
+        loggear_evento(job, "EN_COLA");
+    }
+    mtxQueue.unlock();
+
+    signal(items_cola);
+}
+
+Job dequeueJob() {
+    wait(items_cola);
+
+    mtxQueue.lock();
+    Job j;
+
+    if (messageQueue.front().id == -1) {
+        j = messageQueue.front();
+        messageQueue.erase(messageQueue.begin());
         mtxQueue.unlock();
-
-        j = createJob("Exception");
-        j.id = -1;
         return j;
     }
 
-    //LOG - DESENCOLANDO...
+    time_t ahora = time(0);
+    int pos_free = buscarPrioridad(FREE);
 
-    if(PREMIUMS_LIBERADOS < MAX_PREMIUMS_SEGUIDOS)
-    {
-        int posicion = buscarPrioridad("PREMIUM");
-        j = liberarJob(posicion);
-
+    if (pos_free != -1 && (ahora - messageQueue[pos_free].enqueueTime) >= 5) {
+        j = liberarJob(pos_free);
+        loggear_evento(j, "DESENCOLANDO");
         mtxQueue.unlock();
-
-        if(posicion != -1)
-        {
-          PREMIUMS_LIBERADOS ++;
-        }
-
+        return j;
     }
-    else
-    {
-        int posicion = buscarPrioridad("FREE");
-        j = liberarJob(posicion);
 
-        mtxQueue.unlock();
-
+    if (PREMIUMS_LIBERADOS < MAX_PREMIUMS_SEGUIDOS) {
+        int pos_premium = buscarPrioridad(PREMIUM);
+        if (pos_premium != -1) {
+            j = liberarJob(pos_premium);
+            loggear_evento(j, "DESENCOLANDO");
+            PREMIUMS_LIBERADOS++;
+        } else {
+            j = liberarJob(buscarPrioridad(FREE));
+            loggear_evento(j, "DESENCOLANDO");
+            PREMIUMS_LIBERADOS = 0;
+        }
+    } else {
+        j = liberarJob(buscarPrioridad(FREE));
+        loggear_evento(j, "DESENCOLANDO");
         PREMIUMS_LIBERADOS = 0;
     }
 
+    mtxQueue.unlock();
     return j;
 }
 
-Job liberarJob(int posicion)
-{
+Job liberarJob(int posicion) {
     Job jobLiberar;
-
-    if(posicion != -1)
-    {
-
+    if(posicion != -1) {
         jobLiberar = messageQueue[posicion];
-        messageQueue.erase(messageQueue.begin()+ posicion);
-
-    }
-    else
-    {
+        messageQueue.erase(messageQueue.begin() + posicion);
+    } else {
         jobLiberar = messageQueue.front();
         messageQueue.erase(messageQueue.begin());
-
     }
-
     return jobLiberar;
-
 }
 
-int buscarPrioridad(char prioridad[])
-{
-    for(int i = 0; i < messageQueue.size(); i++)
-    {
-        if(strcmp(messageQueue[i].priority, prioridad) == 0)
-        {
-
+int buscarPrioridad(Priority prioridad) {
+    for(int i = 0; i < messageQueue.size(); i++) {
+        if(messageQueue[i].priority == prioridad) {
             return i;
         }
     }
-
     return -1;
-
 }

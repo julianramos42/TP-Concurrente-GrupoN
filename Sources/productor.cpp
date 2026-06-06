@@ -1,13 +1,16 @@
 #include <iostream>
 #include <mutex>
 #include <stdlib.h>
+#include <thread>
+#include <chrono>
 #include "job.h"
 #include "productor.h"
-#include "queue.h"
+#include "messageQueue.h"
+#include "logger.h"
 
 using namespace std;
 mutex mtx_id;
-//mutex mtx_consola;
+mutex mtx_consola;
 
 int ultimoId = 1;
 
@@ -25,36 +28,12 @@ void productor(){
             j.priority = PREMIUM;
         }
         j.state = CREATED;
+        loggear_evento(j, "CREADO");
+        this_thread::sleep_for(chrono::milliseconds(100));
         enqueueJob(j);
 
- //       mtx_consola.lock();
-        cout << "Job creado: " << j.id << "Prioridad: " << j.priority << endl;
- //       mtx_consola.unlock();
+        mtx_consola.lock();
+        cout << "Job creado: " << j.id << " - Prioridad: " << j.priority << endl;
+        mtx_consola.unlock();
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
