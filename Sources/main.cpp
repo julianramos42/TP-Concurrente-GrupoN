@@ -2,6 +2,7 @@
 #include <thread>
 #include <vector>
 #include <stdlib.h>
+#include <fstream>
 #include <time.h>
 #include <chrono>
 #include "productor.h"
@@ -13,6 +14,8 @@ using namespace std;
 
 int main()
 {
+    std::ofstream limpiar("sistema.log");
+    limpiar.close();
     srand(time(NULL));
 
     cout << "--- Iniciando Granja de Renderizado ---" << endl;
@@ -20,9 +23,9 @@ int main()
     init_vram();
     init_queue();
     /*
-    Configuraci髇 A: 1 Productor y 2 Consumidores (Escenario de baja recepci髇 / alta disponibilidad).
-    Configuraci髇 B: 3 Productores y 1 Consumidor (Escenario de congesti髇 / cuello de botella).
-    Configuraci髇 C: 3 Productores y 3 Consumidores (Escenario de alta concurrencia sim閠rica).
+    Configuraci贸n A: 1 Productor y 2 Consumidores (Escenario de baja recepci贸n / alta disponibilidad).
+    Configuraci贸n B: 3 Productores y 1 Consumidor (Escenario de congesti贸n / cuello de botella).
+    Configuraci贸n C: 3 Productores y 3 Consumidores (Escenario de alta concurrencia sim茅trica).
     */
     int num_productores = 3;
     int num_consumidores = 1;
