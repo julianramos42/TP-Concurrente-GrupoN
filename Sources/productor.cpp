@@ -27,7 +27,6 @@ void productor(){
         }else{
             j.priority = PREMIUM;
         }
-        j.state = CREATED;
         loggear_evento(j, "CREADO");
         this_thread::sleep_for(chrono::milliseconds(100));
         enqueueJob(j);
