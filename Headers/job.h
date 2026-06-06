@@ -6,17 +6,9 @@ enum Priority {
     PREMIUM = 1
 };
 
-enum JobState {
-    CREATED,
-    EN_COLA,
-    ASIGNADO_VRAM,
-    FINALIZADO
-};
-
 struct Job {
     int id;
     Priority priority;
-    JobState state;
     long long enqueueTime;
 };
 
