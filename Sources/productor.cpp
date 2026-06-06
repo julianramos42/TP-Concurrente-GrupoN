@@ -1,6 +1,6 @@
 #include <iostream>
 #include <mutex>
-#include <cstdlib>
+#include <stdlib.h>
 #include "job.h"
 #include "productor.h"
 #include "queue.h"
@@ -25,10 +25,10 @@ void productor(){
             j.priority = PREMIUM;
         }
         j.state = CREATED;
-        agregarJob(j);
+        enqueueJob(j);
 
  //       mtx_consola.lock();
-        cout << "Job creado: " << j.id << "Prioridad: " << j.prioridad << endl;
+        cout << "Job creado: " << j.id << "Prioridad: " << j.priority << endl;
  //       mtx_consola.unlock();
     }
 }
